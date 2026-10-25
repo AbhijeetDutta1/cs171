@@ -64,7 +64,9 @@ class Poet:
         return all(m[k] <= self.clock[k] for k in range(len(AGENTS)) if k != j)
 
     def deliver(self, msg, held):
-        # TODO(you): update self.clock now that this verse is part of the poem.
+        # One more verse from the sender has been output. (Given can_deliver, this equals a max-merge.)
+        j = AGENTS.index(msg["from"])
+        self.clock[j] = msg["clock"][j]
 
         self.poem.append((msg["text"], msg["clock"]))
         self.log.output(msg["from"], msg["clock"], msg["text"], self.clock, held)
