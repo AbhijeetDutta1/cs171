@@ -20,8 +20,7 @@ class Agent:
         self.node = Node(name)
         self.log = Log(name)
 
-        # TODO(you): initialize the vector clock.
-        #   How many entries does it need? Does the Poet get an entry? (Compare with the sample poet.log.)
+        # One entry per agent [Happy, Sad, Love]. The Poet writes no verses, so it gets no entry.
         self.clock = [0] * len(AGENTS)
 
     def run(self):
