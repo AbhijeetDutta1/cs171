@@ -72,12 +72,15 @@ class Poet:
         self.log.output(msg["from"], msg["clock"], msg["text"], self.clock, held)
 
     def deliver_ready(self, just_arrived):
-        # TODO(you): this makes ONE pass over the hold-back queue. Is that enough?
-        #   Hint: can delivering one verse make a different held verse deliverable?
-        for msg in list(self.held):
-            if self.can_deliver(msg):
-                self.held.remove(msg)
-                self.deliver(msg, held=msg is not just_arrived)
+        # Delivering one verse can unblock another, so keep sweeping until a pass delivers nothing.
+        delivered = True
+        while delivered:
+            delivered = False
+            for msg in list(self.held):
+                if self.can_deliver(msg):
+                    self.held.remove(msg)
+                    self.deliver(msg, held=msg is not just_arrived)
+                    delivered = True
 
 
 def build_requests(mode, ns):
