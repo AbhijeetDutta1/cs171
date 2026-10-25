@@ -43,9 +43,8 @@ class Agent:
         # Writing a verse is one event: tick my own entry once (both sends share this time).
         self.clock[self.me] += 1
 
-        # TODO(you): which clock value goes on the outgoing messages? Is a plain reference to
-        #   self.clock safe here, or does it need to be a copy?
-        stamp = self.clock
+        # Stamp with a copy, so the logged/sent value can't change if self.clock changes later.
+        stamp = list(self.clock)
 
         out = {"type": "VERSE", "from": self.name, "text": verse,
                "remaining": remaining, "clock": stamp}
