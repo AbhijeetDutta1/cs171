@@ -55,10 +55,13 @@ class Poet:
                 f.write(f"{verse:<45} {fmt(clock)}\n")
 
     def can_deliver(self, msg):
-        # TODO(you): the causal delivery condition.
-        #   Given self.clock and msg["clock"] (sent by agent msg["from"]), may this verse be
-        #   output now, or is it missing something that causally precedes it?
-        return True
+        # Deliverable iff (a) it is the next verse from its sender j, and
+        # (b) I've already output everything from the other agents that it depends on.
+        j = AGENTS.index(msg["from"])
+        m = msg["clock"]
+        if m[j] != self.clock[j] + 1:
+            return False
+        return all(m[k] <= self.clock[k] for k in range(len(AGENTS)) if k != j)
 
     def deliver(self, msg, held):
         # TODO(you): update self.clock now that this verse is part of the poem.
