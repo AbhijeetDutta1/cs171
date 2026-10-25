@@ -31,9 +31,8 @@ class Agent:
             self.write_verse(msg)
 
     def on_receive(self, msg):
-        # TODO(you): update self.clock using the clock that came with the message (msg["clock"]).
-        #   Is receiving a REQUEST from the Poet any different from receiving a VERSE from an agent?
-        pass
+        # Merge: element-wise max. A REQUEST carries [0,0,0], so merging it changes nothing.
+        self.clock = [max(mine, theirs) for mine, theirs in zip(self.clock, msg["clock"])]
 
     def write_verse(self, msg):
         prev = msg["prefix"] if msg["type"] == "REQUEST" else msg["text"]
