@@ -40,8 +40,8 @@ class Agent:
         verse = next_verse(prev, self.name)
         remaining = msg["remaining"] - 1
 
-        # TODO(you): writing a verse is an event at this agent. What happens to self.clock?
-        #   (Remember: the two sends below count as ONE operation with ONE vector time.)
+        # Writing a verse is one event: tick my own entry once (both sends share this time).
+        self.clock[self.me] += 1
 
         # TODO(you): which clock value goes on the outgoing messages? Is a plain reference to
         #   self.clock safe here, or does it need to be a copy?
