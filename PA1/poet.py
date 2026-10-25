@@ -23,7 +23,7 @@ class Poet:
         self.node = Node("Poet")
         self.log = Log("Poet")
 
-        # TODO(you): initialize the Poet's vector clock.
+        # clock[j] = how many of agent j's verses have been output so far.
         self.clock = [0] * len(AGENTS)
 
         self.held = []                 # hold-back queue: received but not yet deliverable
