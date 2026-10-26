@@ -23,7 +23,10 @@ class Poet:
         self.node = Node("Poet")
         self.log = Log("Poet")
 
-        # clock[j] = how many of agent j's verses have been output so far.
+        # [TODO 5 - done] Poet's vector clock initialization.
+        #   Implemented: a 3-entry clock [Happy, Sad, Love], all zeros.
+        #   Meaning: clock[j] = how many of agent j's verses have been OUTPUT to the poem so far
+        #   (outputs, not receives: verses in the hold-back queue don't count yet).
         self.clock = [0] * len(AGENTS)
 
         self.held = []                 # hold-back queue: received but not yet deliverable
@@ -55,8 +58,12 @@ class Poet:
                 f.write(f"{verse:<45} {fmt(clock)}\n")
 
     def can_deliver(self, msg):
-        # Deliverable iff (a) it is the next verse from its sender j, and
-        # (b) I've already output everything from the other agents that it depends on.
+        # [TODO 6 - done] Causal delivery condition (same idea as causal broadcast, BSS).
+        #   Implemented: a verse from agent j with clock m can be output only if
+        #     (a) m[j] == clock[j] + 1   -> it is the NEXT verse from j (no earlier j verse missing)
+        #     (b) m[k] <= clock[k], k!=j -> every verse from other agents that it depends on
+        #                                   has already been output
+        #   Otherwise it stays in the hold-back queue.
         j = AGENTS.index(msg["from"])
         m = msg["clock"]
         if m[j] != self.clock[j] + 1:
@@ -64,7 +71,10 @@ class Poet:
         return all(m[k] <= self.clock[k] for k in range(len(AGENTS)) if k != j)
 
     def deliver(self, msg, held):
-        # One more verse from the sender has been output. (Given can_deliver, this equals a max-merge.)
+        # [TODO 7 - done] Update the Poet's clock on output.
+        #   Implemented: clock[j] = m[j] for the sender j (i.e., one more verse from j output).
+        #   Why it's enough: can_deliver already guarantees m[k] <= clock[k] for every other k,
+        #   so an element-wise max would only change entry j. It gives the same result.
         j = AGENTS.index(msg["from"])
         self.clock[j] = msg["clock"][j]
 
@@ -72,7 +82,12 @@ class Poet:
         self.log.output(msg["from"], msg["clock"], msg["text"], self.clock, held)
 
     def deliver_ready(self, just_arrived):
-        # Delivering one verse can unblock another, so keep sweeping until a pass delivers nothing.
+        # [TODO 8 - done] Hold-back queue release loop.
+        #   Implemented: repeatedly sweep the held verses, outputting any that are deliverable,
+        #   until a full pass outputs nothing.
+        #   Why: outputting one verse advances the Poet's clock, which can unblock another held
+        #   verse, which can unblock a third (a chain reaction). A single pass could miss them.
+        #   held=True in the log means the verse waited; held=False means it went out on arrival.
         delivered = True
         while delivered:
             delivered = False

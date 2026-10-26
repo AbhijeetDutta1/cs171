@@ -20,7 +20,10 @@ class Agent:
         self.node = Node(name)
         self.log = Log(name)
 
-        # One entry per agent [Happy, Sad, Love]. The Poet writes no verses, so it gets no entry.
+        # [TODO 1 - done] Vector clock initialization.
+        #   Implemented: a 3-entry clock [Happy, Sad, Love], all zeros.
+        #   Why: only agents create events (verses), so only agents need an entry. The Poet
+        #   writes no verses, which is why its requests in the sample carry [0,0,0].
         self.clock = [0] * len(AGENTS)
 
     def run(self):
@@ -31,7 +34,11 @@ class Agent:
             self.write_verse(msg)
 
     def on_receive(self, msg):
-        # Merge: element-wise max. A REQUEST carries [0,0,0], so merging it changes nothing.
+        # [TODO 2 - done] Receive rule.
+        #   Implemented: merge = element-wise max of my clock and the message's clock.
+        #   Why: after this, my clock reflects everything that causally happened before the
+        #   message, so my next verse is ordered after the verse I just received.
+        #   A REQUEST carries [0,0,0], so merging it changes nothing (no special case needed).
         self.clock = [max(mine, theirs) for mine, theirs in zip(self.clock, msg["clock"])]
 
     def write_verse(self, msg):
@@ -40,10 +47,16 @@ class Agent:
         verse = next_verse(prev, self.name)
         remaining = msg["remaining"] - 1
 
-        # Writing a verse is one event: tick my own entry once (both sends share this time).
+        # [TODO 3 - done] Event rule.
+        #   Implemented: increment my own entry by 1.
+        #   Why: writing a verse is a local event. It happens exactly once, even though two
+        #   messages go out, because the spec treats both sends as one operation.
         self.clock[self.me] += 1
 
-        # Stamp with a copy, so the logged/sent value can't change if self.clock changes later.
+        # [TODO 4 - done] Message timestamp.
+        #   Implemented: attach a COPY of my clock (after the increment) to the outgoing message.
+        #   Why: both messages carry the same vector time. A copy means the value in the
+        #   message and the log can't change if self.clock is modified later.
         stamp = list(self.clock)
 
         out = {"type": "VERSE", "from": self.name, "text": verse,
